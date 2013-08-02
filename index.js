@@ -17,16 +17,21 @@ util.inherits(GC, EventEmitter)
 GC.prototype.run = function (cb) {
   var self = this
   var start = Date.now()
+  var end
   var scanned = culled = 0
 
-  var rs = db.readStream()
+  var rs = this.db.readStream()
 
-  var ws = db.writeStream({type: "del"})
-  ws.on("end", function () {
+  var ws = this.db.writeStream({type: "del"})
+  var reply = function () {
+    if (end) return
+    end = Date.now()
     self.emit("finished", start, end, scanned, culled)
     if (cb) return cb(null, start, end, scanned, culled)
-  })
-  ws.on("error", function (err) {
+  }
+  ws.once("end", reply)
+  ws.once("close", reply)
+  ws.once("error", function (err) {
     if (cb) return cb(err)
     throw err
   })
@@ -51,7 +56,7 @@ GC.prototype.run = function (cb) {
     .pipe(filter)
     .pipe(culledCounter)
 
-  if (this.lts) pipeline.pipe(lts.createWriteStream())
+  if (this.lts) pipeline.pipe(this.lts.createWriteStream())
 
   pipeline.pipe(ws)
 }

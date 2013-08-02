@@ -26,7 +26,7 @@ Filter.prototype._transform = function (record, encoding, callback) {
   // "pushing" a record will cause it to be deleted.
   if (this.re.exec(record.key)) this.push(record)
   // "skipping" a record will retain it
-  return cb()
+  return callback()
 }
 
 var scanner = gc(db, Filter, lts)

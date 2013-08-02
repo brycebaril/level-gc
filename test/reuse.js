@@ -5,8 +5,23 @@ var Transform = require("stream").Transform || require("readable-stream/transfor
 var util = require("util")
 
 var level = require("level-test")()
-var testdb = level("test-simple")
+var testdb = level("test-reuse")
 var gc = require("../")
+
+var Transform = require("stream").Transform
+function Filter(options) {
+  Transform.call(this, options)
+  this.re = new RegExp("^temp")
+}
+util.inherits(Filter, Transform)
+Filter.prototype._transform = function (record, encoding, callback) {
+  // "pushing" a record will cause it to be deleted.
+  if (this.re.exec(record.key)) this.push(record)
+  // "skipping" a record will retain it
+  return callback()
+}
+
+var scanner = gc(testdb, Filter)
 
 test("load", function (t) {
   t.plan(1)
@@ -38,23 +53,7 @@ test("scan", function (t) {
 })
 
 test("run", function (t) {
-  t.plan(7)
-
-  var Transform = require("stream").Transform
-  function Filter(options) {
-    Transform.call(this, options)
-    this.re = new RegExp("^temp")
-  }
-  util.inherits(Filter, Transform)
-  Filter.prototype._transform = function (record, encoding, callback) {
-    // "pushing" a record will cause it to be deleted.
-    if (this.re.exec(record.key)) this.push(record)
-    // "skipping" a record will retain it
-    return callback()
-  }
-
-  var scanner = gc(testdb, Filter)
-  t.ok(scanner.run, "created a gc scanner")
+  t.plan(6)
 
   scanner.run(function (err, start, end, scanned, culled) {
     t.notOk(err, "no error")
@@ -66,11 +65,35 @@ test("run", function (t) {
   })
 })
 
+test("moar data in", function (t) {
+  t.plan(1)
+
+  testdb.batch([
+    {type: "put", key: "parrot", value: "squawk"},
+    {type: "put", key: "temppuppy", value: "woof woof"},
+  ], function (err) {
+    t.notOk(err, "no error")
+  })
+})
+
+test("run", function (t) {
+  t.plan(6)
+
+  scanner.run(function (err, start, end, scanned, culled) {
+    t.notOk(err, "no error")
+    t.ok(start, "start")
+    t.ok(end, "end")
+    t.equals(scanned, 10, "scanned 10 records")
+    t.equals(culled, 1, "culled 1")
+    t.ok(end > start, "took more than a millisecond")
+  })
+})
+
 test("scan again", function (t) {
   t.plan(1)
 
   function count(records) {
-    t.equals(records.length, 8, "Now only 8 records are there")
+    t.equals(records.length, 9, "Now only 9 records are there")
   }
 
   testdb.readStream().pipe(concat(count))

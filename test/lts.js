@@ -5,7 +5,8 @@ var Transform = require("stream").Transform || require("readable-stream/transfor
 var util = require("util")
 
 var level = require("level-test")()
-var testdb = level("test-simple")
+var testdb = level("test-lts")
+var lts = level("test-backup")
 var gc = require("../")
 
 test("load", function (t) {
@@ -53,7 +54,7 @@ test("run", function (t) {
     return callback()
   }
 
-  var scanner = gc(testdb, Filter)
+  var scanner = gc(testdb, Filter, lts)
   t.ok(scanner.run, "created a gc scanner")
 
   scanner.run(function (err, start, end, scanned, culled) {
@@ -74,4 +75,17 @@ test("scan again", function (t) {
   }
 
   testdb.readStream().pipe(concat(count))
+})
+
+test("scan lts", function (t) {
+  t.plan(3)
+
+  function count(records) {
+    t.equals(records.length, 2, "We backed up 2 records")
+    records.map(function (r) {
+      t.ok(/^temp/.exec(r.key), "record is a 'temp' record")
+    })
+  }
+
+  lts.readStream().pipe(concat(count))
 })
