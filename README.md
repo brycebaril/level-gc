@@ -3,6 +3,8 @@ level-gc
 
 Garbage Collection for leveldb ([levelup](http://npm.im/levelup)).
 
+[![NPM](https://nodei.co/npm/level-gc.png)](https://nodei.co/npm/level-gc/)
+
 Periodically scan through your level instance and cull records based on custom logic.
 
 ```javascript

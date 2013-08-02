@@ -3,6 +3,7 @@ module.exports = GC
 var EventEmitter = require("events").EventEmitter
 var util = require("util")
 var through = require("through2")
+var Transform = require("stream").Transform || require("readable-stream/transform")
 
 function GC(db, Filter, lts) {
   if (!(this instanceof GC)) return new GC(db, Filter, lts)
@@ -28,9 +29,10 @@ GC.prototype.run = function (cb) {
   ws.on("error", function (err) {
     if (cb) return cb(err)
     throw err
-  }
+  })
 
-  var filter = new Filter({objectMode: true})
+  var filter = new this.Filter({objectMode: true})
+  if (!filter instanceof Transform) return cb(new Error("Filter must be a streams2 Transform"))
 
   var scanCounter = through({objectMode: true}, function (record, encoding, cb) {
     scanned++
