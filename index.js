@@ -26,7 +26,7 @@ GC.prototype.run = function (cb) {
   var reply = function () {
     if (end) return
     end = Date.now()
-    self.emit("finished", start, end, scanned, culled)
+    self.emit("finish", start, end, scanned, culled)
     if (cb) return cb(null, start, end, scanned, culled)
   }
   ws.once("end", reply)
