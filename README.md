@@ -51,6 +51,8 @@ API
 
 Returns an object that will let you trigger Garbage Collection runs.
 
+If you provide the optional `lts` long term storage instance, as records are deleted they will be put into the `lts` instance.
+
 **Why not use [through2](http://npm.im/through2)? Well, the filter needs to be reusable, and this is the best interface I've come up with so far for creating a _multi-record scoped reusable_ custom filter.
 
 `.run([callback])`
