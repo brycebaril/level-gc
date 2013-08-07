@@ -2,7 +2,7 @@ module.exports = GC
 
 var EventEmitter = require("events").EventEmitter
 var util = require("util")
-var through = require("through2")
+var spy = require("through2-spy")
 var Transform = require("stream").Transform || require("readable-stream/transform")
 
 function GC(db, Filter, lts) {
@@ -39,22 +39,12 @@ GC.prototype.run = function (cb) {
   var filter = new this.Filter({objectMode: true})
   if (!filter instanceof Transform) return cb(new Error("Filter must be a streams2 Transform"))
 
-  var scanCounter = through({objectMode: true}, function (record, encoding, cb) {
-    scanned++
-    this.push(record)
-    cb()
-  })
-
-  var culledCounter = through({objectMode: true}, function (record, encoding, cb) {
-    culled++
-    this.push(record)
-    cb()
-  })
+  var spyOpts = {objectMode: true}
 
   var pipeline = rs
-    .pipe(scanCounter)
+    .pipe(spy(spyOpts, function () {scanned++}))
     .pipe(filter)
-    .pipe(culledCounter)
+    .pipe(spy(spyOpts, function () {culled++}))
 
   if (this.lts) pipeline.pipe(this.lts.createWriteStream())
 

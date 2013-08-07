@@ -13,21 +13,17 @@ var util = require("util")
 var level = require("level")
 var db = level("/tmp/mydb")
 var lts = level("/tmp/long-term-storage")
+var filter = require("through2-filter")
+
 var gc = require("level-gc")
 
 // Create a GC filter to delete all records starting with 'temp'
-var Transform = require("stream").Transform
-function Filter(options) {
-  Transform.call(this, options)
-  this.re = new RegExp("^temp")
-}
-util.inherits(Filter, Transform)
-Filter.prototype._transform = function (record, encoding, callback) {
-  // "pushing" a record will cause it to be deleted.
-  if (this.re.exec(record.key)) this.push(record)
-  // "skipping" a record will retain it
-  return callback()
-}
+var re = /^temp/
+var Filter = filter.ctor({objectMode: true},
+  function (record) {
+    // Return `true` for records you want removed.
+    return re.exec(record.key)
+  })
 
 var scanner = gc(db, Filter, lts)
 
@@ -53,7 +49,10 @@ Returns an object that will let you trigger Garbage Collection runs.
 
 If you provide the optional `lts` long term storage instance, as records are deleted they will be put into the `lts` instance.
 
-**Why not use [through2](http://npm.im/through2)? Well, the filter needs to be reusable, and this is the best interface I've come up with so far for creating a _multi-record scoped reusable_ custom filter.
+**For simple filters, [through2-filter](http://npm.im/through2-filter)'s `.ctor()` method is very convenient.
+
+**For more complex filters or transforms, see [through2](http://npm.im/through2)'s `.ctor()` method for easily creating streams2 Transforms.
+
 
 `.run([callback])`
 ----------------
