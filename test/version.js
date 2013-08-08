@@ -2,7 +2,6 @@ var test = require("tape").test
 
 var version = require("level-version")
 var concat = require("concat-stream")
-var Transform = require("stream").Transform || require("readable-stream/transform")
 var util = require("util")
 
 var level = require("level-test")()
@@ -43,17 +42,9 @@ test("scan", function (t) {
 test("run", function (t) {
   t.plan(7)
 
-  var Transform = require("stream").Transform
-  function Filter(options) {
-    Transform.call(this, options)
-  }
-  util.inherits(Filter, Transform)
-  Filter.prototype._transform = function (record, encoding, callback) {
-    if (record.version < 1000) this.push(record)
-    return callback()
-  }
-
-  var scanner = gc(testdb, Filter)
+  var scanner = gc(testdb, function (record) {
+    return record.version < 1000
+  })
   t.ok(scanner.run, "created a gc scanner")
 
   scanner.run(function (err, start, end, scanned, culled) {

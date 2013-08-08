@@ -1,7 +1,6 @@
 var test = require("tape").test
 
 var concat = require("concat-stream")
-var Transform = require("stream").Transform || require("readable-stream/transform")
 var util = require("util")
 
 var level = require("level-test")()
@@ -40,20 +39,10 @@ test("scan", function (t) {
 test("run", function (t) {
   t.plan(6)
 
-  var Transform = require("stream").Transform
-  function Filter(options) {
-    Transform.call(this, options)
-    this.re = new RegExp("^temp")
-  }
-  util.inherits(Filter, Transform)
-  Filter.prototype._transform = function (record, encoding, callback) {
-    // "pushing" a record will cause it to be deleted.
-    if (this.re.exec(record.key)) this.push(record)
-    // "skipping" a record will retain it
-    return callback()
-  }
-
-  var scanner = gc(testdb, Filter)
+  var re = /^temp/
+  var scanner = gc(testdb, function (record) {
+    return re.exec(record.key)
+  })
   t.ok(scanner.run, "created a gc scanner")
 
   scanner.once("finish", function (start, end, scanned, culled) {

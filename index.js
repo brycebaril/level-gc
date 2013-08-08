@@ -2,14 +2,15 @@ module.exports = GC
 
 var EventEmitter = require("events").EventEmitter
 var util = require("util")
+var t2filter = require("through2-filter")
 var spy = require("through2-spy")
 var Transform = require("stream").Transform || require("readable-stream/transform")
 
-function GC(db, Filter, lts) {
-  if (!(this instanceof GC)) return new GC(db, Filter, lts)
+function GC(db, fn, lts) {
+  if (!(this instanceof GC)) return new GC(db, fn, lts)
   EventEmitter.call(this)
   this.db = db
-  this.Filter = Filter
+  this.Filter = t2filter.ctor({objectMode: true}, fn)
   this.lts = lts
 }
 util.inherits(GC, EventEmitter)
