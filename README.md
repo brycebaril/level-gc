@@ -5,6 +5,9 @@ Garbage Collection for leveldb ([levelup](http://npm.im/levelup)).
 
 [![NPM](https://nodei.co/npm/level-gc.png)](https://nodei.co/npm/level-gc/)
 
+[![david-dm](https://david-dm.org/brycebaril/level-gc.png)](https://david-dm.org/brycebaril/level-gc/)
+[![david-dm](https://david-dm.org/brycebaril/level-gc/dev-status.png)](https://david-dm.org/brycebaril/level-gc#info=devDependencies/)
+
 Scan through your level instance and cull records based on custom logic.
 
 ```javascript

@@ -47,7 +47,7 @@ GC.prototype.run = function (cb) {
     .pipe(filter)
     .pipe(spy(spyOpts, function () {culled++}))
 
-  if (this.lts) pipeline.pipe(this.lts.createWriteStream())
+  if (this.lts) pipeline.pipe(this.lts.writeStream())
 
   pipeline.pipe(ws)
 }

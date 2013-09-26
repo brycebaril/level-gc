@@ -4,7 +4,7 @@ var concat = require("concat-stream")
 var util = require("util")
 
 var level = require("level-test")()
-var testdb = level("test-simple")
+var testdb = level("test-event")
 var gc = require("../")
 
 test("load", function (t) {
