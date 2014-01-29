@@ -1,6 +1,6 @@
 {
   "name": "level-gc",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Garbage collection for levelup",
   "main": "index.js",
   "directories": {
